@@ -3,12 +3,30 @@ import numpy as np
 import random
 from scipy.stats import pearsonr
 from scipy.spatial import distance
-#import seaborn as sns
+# import seaborn as sns
 import matplotlib.pyplot as plt
 import tensorflow.compat.v1 as tf
+
 tf.disable_v2_behavior()
 import heapq
 import csv
+import math
+
+
+# deduplicate
+def func1(one_list):
+    return list(set(one_list))
+
+
+def frequency_sort(one_list):
+    a = {}
+    one_list = one_list.tolist()
+    for i in one_list:
+        # if top_3.count(i)>1:
+        a[i] = one_list.count(i)
+    a = sorted(a.items(), key=lambda item: item[1], reverse=True)
+    return a
+
 
 def Euclidean_dist(A, B):
     C = A - B
@@ -70,7 +88,7 @@ tf.set_random_seed(1)
 LR = 0.0001  # learning rate
 Dropout_rate = 0.5
 # GSE Data
-data_path = "./Data/GSE66525.npy"
+data_path = "./Data/GSE60361.npy"
 X = np.load(data_path)
 training_dictionary_fraction = 0.05
 genes, samples = X.shape
@@ -103,14 +121,14 @@ Results = {}
 # seeds = [283, 446, 562, 114, 739]
 
 print(seeds)
-for i in range(2):
+for i in range(1):
 
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
 
     X_train, X_test = random_split_train_test(X, training_dictionary_fraction, seed=seeds[i])
-    #print(xi)
-    #np.savetxt("GSE60361_Xi.csv", xi, delimiter=',')
+    # print(xi)
+    # np.savetxt("GSE60361_Xi.csv", xi, delimiter=',')
     print(X.shape)  #
     print(X_train.shape)  #
     print(X_test.shape)  #
@@ -168,23 +186,71 @@ for k, v in sorted(Results.items()):
 
 
 top = []
-for i in range(10):
-    chl = np.zeros((10,), dtype=np.int)
-    chl[i] = 1
-    out_w1 = sess.run(tf.get_default_graph().get_tensor_by_name('dense_4/kernel:0'))
-    out_b1 = sess.run(tf.get_default_graph().get_tensor_by_name('dense_4/bias:0'))
-    chl1 = np.dot(out_w1.T, chl) + out_b1
-    out_w2 = sess.run(tf.get_default_graph().get_tensor_by_name('dense_5/kernel:0'))
-    out_b2 = sess.run(tf.get_default_graph().get_tensor_by_name('dense_5/bias:0'))
-    chl2 = np.dot(out_w2.T, chl1) + out_b2
-    out_w3 = sess.run(tf.get_default_graph().get_tensor_by_name('dense_6/kernel:0'))
-    out_b3 = sess.run(tf.get_default_graph().get_tensor_by_name('dense_6/bias:0'))
-    chl3 = np.dot(out_w3.T, chl2) + out_b3
-    out_w4 = sess.run(tf.get_default_graph().get_tensor_by_name('dense_7/kernel:0'))
-    out_b4 = sess.run(tf.get_default_graph().get_tensor_by_name('dense_7/bias:0'))
-    chl4 = np.dot(out_w4.T, chl3) + out_b4
-    top10 = heapq.nlargest(2417, range(len(chl4)), chl4.take)
-    top = np.hstack((top, top10))
+for k in range(10):
+    Weights_4 = tf.get_default_graph().get_tensor_by_name('dense_3/kernel:0')
+    Weights_4 = sess.run(Weights_4)
+    print(Weights_4.shape)
+    print(math.floor(Weights_4.shape[0] * 0.1))
+    select_4 = math.floor(Weights_4.shape[0] * 0.1)
+    print(select_4)
+    w4 = Weights_4[:, k]
+    top_4 = heapq.nlargest(select_4, range(len(w4)), w4.take)
 
-np.savetxt("GSE65525_top.csv", top, delimiter=',')
+    Weights_3 = tf.get_default_graph().get_tensor_by_name('dense_2/kernel:0')
+    Weights_3 = sess.run(Weights_3)
+    print(Weights_3.shape)
+    print(math.floor(Weights_4.shape[0] * 0.1))
+    select_3 = math.ceil(Weights_3.shape[0] * 0.1)
+    print(select_3)
+    top_3 = []
+    for i in range(select_4):
+        index = top_4[i]
+        top = heapq.nlargest(select_3, range(len(Weights_3[:, index])), Weights_3[:, index].take)
+        top_3 = np.hstack((top_3, top))
+    print(top_3)
+    print(top_3.shape)
+    top_3 = frequency_sort(top_3)
+    len(top_3)
+
+    Weights_2 = tf.get_default_graph().get_tensor_by_name('dense_1/kernel:0')
+    Weights_2 = sess.run(Weights_2)
+    print(Weights_2.shape)
+    print(math.floor(Weights_3.shape[0] * 0.1))
+    select_2 = math.floor(Weights_2.shape[0] * 0.1)
+    print(select_2)
+    top_2 = []
+    for i in range(math.floor(len(top_3) * 0.1)):
+        index = int(top_3[i][0])
+        top = heapq.nlargest(select_2, range(len(Weights_2[:, index])), Weights_2[:, index].take)
+        top_2 = np.hstack((top_2, top))
+    print(top_2)
+    print(top_2.shape)
+    top_2 = frequency_sort(top_2)
+    len(top_2)
+
+    Weights_1 = tf.get_default_graph().get_tensor_by_name('dense/kernel:0')
+    Weights_1 = sess.run(Weights_1)
+    print(Weights_1.shape)
+    print(math.floor(Weights_2.shape[0] * 0.1))
+    select_1 = math.floor(Weights_1.shape[0] * 0.1)
+    print(select_1)
+    top_1 = []
+    for i in range(math.floor(len(top_2) * 0.1)):
+        index = int(top_2[i][0])
+        top = heapq.nlargest(select_1, range(len(Weights_1[:, index])), Weights_1[:, index].take)
+        top_1 = np.hstack((top_1, top))
+    print(top_1)
+    print(top_1.shape)
+    top_1 = frequency_sort(top_1)
+    len(top_1)
+
+    top_10 = []
+    for i in range(1997):
+        index = int(top_1[i][0])
+        top_10.append(index)
+    file = "GSE60361_top_new_" + str(k) + ".csv"
+    np.savetxt(file, top_10, delimiter=',')
+    top = np.hstack((top, top_10))
+
+np.savetxt("GSE60361_top_new.csv", top, delimiter=',')
 print(top.shape)
