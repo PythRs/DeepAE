@@ -24,7 +24,7 @@ Following R packages should be installed:
 
 # CONTAINS:
 <ul>
-<li><p>DeepAE.ipynb : Python script to run DeepAE and get results</p></li>
+<li><p>DeepAE.py : Python script to run DeepAE and get results</p></li>
 <li><p>WikiPathways import to Cytospace.R : R script to get the pathways and import to Cytospace App</p></li>
 <li><p>Gene Ontology and WikiPathways analysis.R : R script to get the Gene Ontology and WikiPathways</p></li> 
 <li><p>clusterHeatmap.R : R script to get the clustering heatmaps graphics</p></li> 
