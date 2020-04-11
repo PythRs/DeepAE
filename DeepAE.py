@@ -4,7 +4,6 @@ tf.disable_v2_behavior()
 import numpy as np
 import random
 from scipy.stats import pearsonr
-from analyze_predictions import *
 from scipy.spatial import distance
 #import seaborn as sns
 import matplotlib.pyplot as plt
